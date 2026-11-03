@@ -2,6 +2,23 @@ from mazegen.generator import MazeGenerator, N, E, S, W
 
 
 def display(maze: MazeGenerator) -> None:
+    path = maze.solve()
+    path_cells = set()
+
+    if path or maze.entry == maze.exit_:
+        x, y = maze.entry
+        path_cells.add((x, y))
+        for direction in path:
+            if direction == "N":
+                y -= 1
+            elif direction == "E":
+                x += 1
+            elif direction == "S":
+                y += 1
+            else:
+                x -= 1
+            path_cells.add((x, y))
+
     for y in range(maze.height):
         line = ""
 
@@ -26,6 +43,8 @@ def display(maze: MazeGenerator) -> None:
 
             if (x, y) in maze.cells_42:
                 line += "███"
+            elif (x, y) in path_cells:
+                line += " x "
             else:
                 line += "   "
 

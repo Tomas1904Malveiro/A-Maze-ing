@@ -6,6 +6,7 @@ from output_writer import write_output
 def main() -> None:
     maze = MazeGenerator(20, 15, (0, 0), (19, 14), seed=42)
     maze.generate()
+    maze.solve()
     display(maze)
     write_output(maze, "maze.txt")
 
