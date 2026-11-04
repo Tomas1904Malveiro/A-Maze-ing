@@ -1,16 +1,22 @@
 NAME = a_maze_ing.py
-SRCS = a_maze_ing.py, display.py, output_writer.py, mazegen/__init__.py, mazegen/generator.py
-
+CONFIG = config.txt
 
 install:
 	python3 -m pip install flake8 mypy
 
-all:
-	run $(NAME)
+run:
+	run $(NAME) $(CONFIG)
 
 debug:
-	python3 -m pdb $(NAME)
+	python3 -m pdb $(NAME) $(CONFIG)
 
 clean:
-	rm -f __pycache__
-	rm -f  .mypy_cache
+	find . -type d -name __pycache__ -exec rm -rf {} +
+	rm -rf .mypy__cache
+
+lint:
+	python3 -m flake8 .
+	python3 -m mypy . --warn-return-any --warn-unused-ignores \
+	--ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+
+.PHONY: install run debug clean lint
