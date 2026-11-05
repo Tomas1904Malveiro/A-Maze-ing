@@ -6,8 +6,10 @@ import sys
 
 
 def main() -> None:
+    """Generate a maze from a configuration file and display it."""
+
     if len(sys.argv) != 2:
-        print("Usage: python3 a_maze_ing config.txt")
+        print("Usage: python3 a_maze_ing.py config.txt")
         sys.exit(1)
 
     try:
@@ -16,13 +18,14 @@ def main() -> None:
         print(f"Error: {e}")
         sys.exit(1)
 
-    try:
-        maze = MazeGenerator(config["WIDTH"], config["HEIGHT"], config["ENTRY"], config["EXIT"], config["OUTPUT_FILE"], config["PERFECT"], config.get["SEED"])
-        maze.generate()
-        display(maze)
-        write_output(maze, config["OUTPUT_FILE"])
-    except TypeError as e:
-        print(f"Invalid config.txt {e}")
+    maze = MazeGenerator(
+        config["WIDTH"], config["HEIGHT"],
+        config["ENTRY"], config["EXIT"],
+        config["PERFECT"], config.get("SEED"),
+    )
+    maze.generate()
+    display(maze)
+    write_output(maze, config["OUTPUT_FILE"])
 
 
 if __name__ == "__main__":
