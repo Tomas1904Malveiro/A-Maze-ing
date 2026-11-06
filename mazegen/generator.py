@@ -144,4 +144,3 @@ class MazeGenerator:
             result += "NESW"[d]
 
         return result
-
