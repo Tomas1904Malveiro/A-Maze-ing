@@ -27,7 +27,8 @@ def display(maze: MazeGenerator) -> None:
 
             if maze.grid[y][x] & (1 << N):
                 line += "═══"
-
+            elif (x, y) in path_cells and (x, y - 1) in path_cells:
+                line += "\033[34m███\033[0m"
             else:
                 line += "   "
 
@@ -38,13 +39,19 @@ def display(maze: MazeGenerator) -> None:
         for x in range(maze.width):
             if maze.grid[y][x] & (1 << W):
                 line += "║"
+            elif (x, y) in path_cells and (x - 1, y) in path_cells:
+                line += "\033[34m█\033[0m"
             else:
                 line += " "
 
             if (x, y) in maze.cells_42:
                 line += "███"
+            elif (x, y) == maze.entry:
+                line += "\033[35m███\033[0m"
+            elif (x, y) == maze.exit_:
+                line += "\033[31m███\033[0m"
             elif (x, y) in path_cells:
-                line += " x "
+                line += "\033[34m███\033[0m"
             else:
                 line += "   "
 
