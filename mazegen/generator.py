@@ -103,6 +103,9 @@ class MazeGenerator:
             else:
                 stack.pop()
 
+        if not self.perfect:
+            self.braid()
+
 
     def solve(self) -> str:
         visited = [[False] * self.width for _ in range(self.height)]
@@ -144,3 +147,65 @@ class MazeGenerator:
             result += "NESW"[d]
 
         return result
+
+
+    def count_walls(self, x: int, y: int) -> int:
+        """Return how many walls the cell (x, y) has closed."""
+        count = 0
+        for direction in (N, E, S, W):
+            if self.grid[y][x] & (1 << direction):
+                count += 1
+        return count
+
+
+    def braid(self) -> None:
+        """Open walls in dead ends so that the maze has loops."""
+        for y in range(self.height):
+            for x in range(self.width):
+                if (x, y) in self.cells_42:
+                    continue
+                if self.count_walls(x, y) != 3:
+                    continue
+
+                candidates = []
+                for direction in (N, E, S, W):
+                    nx = x + DX[direction]
+                    ny = y + DY[direction]
+                    if 0 <= nx < self.width and 0 <= ny < self.height and self.grid[y][x] & (1 << direction) and (nx, ny) not in self.cells_42:
+                        candidates.append(direction)
+
+                if len(candidates) > 0:
+                    self.rng.shuffle(candidates)
+                for direction in candidates:
+                    nx = x + DX[direction]
+                    ny = y + DY[direction]
+                    old_a = self.grid[y][x]
+                    old_b = self.grid[ny][nx]
+
+                    self.open_wall(x, y, direction)
+                    if self.has_open_3x3():
+                        self.grid[y][x] = old_a
+                        self.grid[ny][nx] = old_b
+                    else:
+                        break
+
+
+    def has_open_3x3(self) -> bool:
+        """Return True if the maze has a fully open 3x3 area."""
+        for y in range(self.height - 2):
+            for x in range(self.width - 2):
+                all_open = True
+
+                for j in range(3):
+                    for i in range(2):
+                        if self.grid[y + j][x + i] & (1 << E):
+                            all_open = False
+
+                for j in range(2):
+                    for i in range(3):
+                        if self.grid[y + j][x + i] & (1 << S):
+                            all_open = False
+
+                if all_open:
+                    return True
+        return False
