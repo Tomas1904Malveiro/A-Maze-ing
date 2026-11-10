@@ -237,7 +237,6 @@ python3 -m venv venv
 source venv/bin/activate
 pip install build
 python3 -m build
-pip install dist/mazegen-1.0.0-py3-none-any.whl
 ```
 
 The built package (`mazegen-1.0.0-py3-none-any.whl`) is available at the root
@@ -257,6 +256,7 @@ generator is in `LICENSE.md`.
 │   ├── __init__.py
 │   └── generator.py     MazeGenerator (reusable module)
 ├── Makefile
+├── pyproject.toml
 └── README.md
 ```
 
