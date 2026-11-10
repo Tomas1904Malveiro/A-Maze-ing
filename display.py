@@ -1,7 +1,9 @@
 from mazegen.generator import MazeGenerator, N, E, S, W
 
 
-def display(maze: MazeGenerator, show_path: bool = False, wall_color: str = "") -> None:
+def display(maze: MazeGenerator,
+            show_path: bool = False,
+            wall_color: str = "") -> None:
     """Print the maze in the terminal.
 
     Args:

@@ -19,7 +19,8 @@ CELLS_42 = [
 
 
 class MazeGenerator:
-    def __init__(self, width: int, height: int,
+    def __init__(
+                self, width: int, height: int,
                 entry: tuple[int, int], exit_: tuple[int, int],
                 perfect: bool = True, seed: int | None = None) -> None:
         self.width = width
@@ -106,7 +107,6 @@ class MazeGenerator:
         if not self.perfect:
             self.braid()
 
-
     def solve(self) -> str:
         visited = [[False] * self.width for _ in range(self.height)]
         queue = [self.entry]
@@ -125,7 +125,11 @@ class MazeGenerator:
                 nx = x + DX[direction]
                 ny = y + DY[direction]
 
-                if 0 <= nx < self.width and 0 <= ny < self.height and not self.grid[y][x] & (1 << direction) and not visited[ny][nx]:
+                if (
+                    0 <= nx < self.width and 0 <= ny < self.height
+                    and not self.grid[y][x] & (1 << direction)
+                    and not visited[ny][nx]
+                ):
                     visited[ny][nx] = True
                     came_from[(nx, ny)] = ((x, y), direction)
                     queue.append((nx, ny))
@@ -148,7 +152,6 @@ class MazeGenerator:
 
         return result
 
-
     def count_walls(self, x: int, y: int) -> int:
         """Return how many walls the cell (x, y) has closed."""
         count = 0
@@ -156,7 +159,6 @@ class MazeGenerator:
             if self.grid[y][x] & (1 << direction):
                 count += 1
         return count
-
 
     def braid(self) -> None:
         """Open walls in dead ends so that the maze has loops."""
@@ -171,7 +173,12 @@ class MazeGenerator:
                 for direction in (N, E, S, W):
                     nx = x + DX[direction]
                     ny = y + DY[direction]
-                    if 0 <= nx < self.width and 0 <= ny < self.height and self.grid[y][x] & (1 << direction) and (nx, ny) not in self.cells_42:
+
+                    if (
+                        0 <= nx < self.width and 0 <= ny < self.height
+                        and self.grid[y][x] & (1 << direction)
+                        and (nx, ny) not in self.cells_42
+                    ):
                         candidates.append(direction)
 
                 if len(candidates) > 0:
@@ -188,7 +195,6 @@ class MazeGenerator:
                         self.grid[ny][nx] = old_b
                     else:
                         break
-
 
     def has_open_3x3(self) -> bool:
         """Return True if the maze has a fully open 3x3 area."""
