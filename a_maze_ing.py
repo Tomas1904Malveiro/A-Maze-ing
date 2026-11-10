@@ -1,6 +1,6 @@
 import sys
 from typing import Any
-
+import os
 from config_parser import parse_config
 from display import display
 from mazegen.generator import MazeGenerator
@@ -54,6 +54,7 @@ def main() -> None:
         except (EOFError, KeyboardInterrupt):
             break
 
+        os.system("clear")
         if choice == "1":
             if "SEED" in config:
                 maze = build_maze(config, config["SEED"])
