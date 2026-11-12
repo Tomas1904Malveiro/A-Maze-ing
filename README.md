@@ -68,9 +68,114 @@ blue and the "42" pattern as solid blocks.
 
 | Rule | Description |
 |---|---|
-| `make debug` | Run the program under Python's debugger (`pdb`) |
+| `make debug` | Run the program under Python's debugger (`pdb`), see the next section |
 | `make lint` | Run `flake8` and `mypy` with the flags required by the subject |
+| `make lint-strict` | Run `flake8` and `mypy --strict` (optional, stricter type checking) |
 | `make clean` | Remove `__pycache__` folders and the `.mypy_cache` folder |
+
+## Debugging with `make debug`
+
+`make debug` runs the program under Python's debugger. `pdb` stops on the
+first line and waits for commands at the `(Pdb)` prompt, so the program can be
+executed step by step and its variables can be inspected. The interactive
+menu also reads from the terminal, so when the program waits for `Choice?`
+just type the option as usual.
+
+| Command | Action |
+|---|---|
+| `n` | Execute the next line (does not enter functions) |
+| `s` | Execute the next line, entering the function if there is a call |
+| `c` | Continue until the next breakpoint (or the end of the program) |
+| `b file:line` | Set a breakpoint (`b file:line, condition` for a conditional one) |
+| `l` / `ll` | Show the code around the current line / of the whole current function |
+| `p expr` / `pp expr` | Print / pretty-print the value of an expression |
+| `w` | Show the call stack (where we are and who called this function) |
+| `r` | Continue until the current function returns |
+| `q` | Quit the debugger |
+
+Pressing `Enter` repeats the last command. Breakpoints need a line number,
+which changes whenever the code changes, so look it up first in another
+terminal with `grep -n` and use it in place of `<line>` below.
+
+**Example 1: check the parsed configuration.**
+
+```
+$ grep -n "maze = build_maze" a_maze_ing.py
+$ make debug
+(Pdb) b a_maze_ing.py:<line>
+(Pdb) c
+(Pdb) pp config
+{'ENTRY': (0, 0),
+ 'EXIT': (19, 14),
+ 'HEIGHT': 15,
+ 'OUTPUT_FILE': 'maze.txt',
+ 'PERFECT': True,
+ 'SEED': 42,
+ 'WIDTH': 20}
+(Pdb) p type(config["WIDTH"])
+<class 'int'>
+```
+
+The values are already converted by the parser (integers, tuples and a
+boolean), not strings.
+
+**Example 2: follow the generation algorithm step by step.** Stop on the line
+of the `while len(stack) > 0:` loop that decides whether to advance or to
+backtrack.
+
+```
+$ grep -n "if len(options) > 0" mazegen/generator.py
+$ make debug
+(Pdb) b mazegen/generator.py:<line>
+(Pdb) c
+(Pdb) p (x, y)
+(Pdb) p options
+(Pdb) p stack
+(Pdb) c
+```
+
+Each `c` runs one more iteration of the loop. `(x, y)` is the cell being
+visited, `options` are the directions towards unvisited neighbours, and
+`stack` is the current path. The stack grows when the algorithm advances and
+shrinks when `options` is empty and it backtracks.
+
+**Example 3: check that the exit was reached by the shortest-path search.**
+
+```
+$ grep -n "if self.exit_ not in came_from" mazegen/generator.py
+$ make debug
+(Pdb) b mazegen/generator.py:<line>
+(Pdb) c
+(Pdb) p self.exit_
+(Pdb) p len(came_from)
+(Pdb) p self.exit_ in came_from
+True
+```
+
+`came_from` stores, for every cell discovered by the search, the cell it came
+from and the direction used. If the exit is in it, the path can be rebuilt.
+
+**Example 4: watch the braiding open a dead end** (set `PERFECT=False` in the
+configuration first).
+
+```
+$ grep -n "old_a = self.grid" mazegen/generator.py
+$ make debug
+(Pdb) b mazegen/generator.py:<line>
+(Pdb) c
+(Pdb) p (x, y)
+(Pdb) p self.count_walls(x, y)
+3
+(Pdb) p direction
+(Pdb) n
+(Pdb) n
+(Pdb) n
+(Pdb) p self.has_open_3x3()
+```
+
+The cell `(x, y)` is a dead end (three closed walls). After the lines that
+open the wall have run, `has_open_3x3()` tells whether the opening created a
+forbidden 3x3 area, in which case the wall is restored.
 
 ## Configuration file
 
@@ -281,7 +386,7 @@ generator is in `LICENSE.md`.
   shortest path, braiding), configuration parser, output writer, main program
   and menu, Makefile.
 - `kbezerra`: terminal display (rendering of walls, entry, exit and path,
-  colours), algotithm BFS (solve) and the config.txt.
+  colours), the BFS algorithm (`solve`) and `config.txt`.
 
 **Planning and how it evolved.**
 
@@ -315,30 +420,47 @@ Claude as an AI assistant (see below).
 
 ## Resources
 
-**References.**
+**Mazes, graphs and algorithms.**
 
 - [Maze generation algorithms (Wikipedia)](https://en.wikipedia.org/wiki/Maze_generation_algorithm)
-- [Maze Algorithms recap, Jamis Buck](https://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap)
-- [Python `random` module](https://docs.python.org/3/library/random.html)
+- [Maze Generation: Recursive Backtracking, Jamis Buck](https://weblog.jamisbuck.org/2010/12/27/maze-generation-recursive-backtracking)
+- [Maze Generation Algorithm Recap, Jamis Buck](https://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap)
+- [Spanning tree (Wikipedia)](https://en.wikipedia.org/wiki/Spanning_tree): a perfect maze is a spanning tree of the grid
+- [Depth-first search (Wikipedia)](https://en.wikipedia.org/wiki/Depth-first_search)
+- [Breadth-first search (Wikipedia)](https://en.wikipedia.org/wiki/Breadth-first_search)
+
+**Bits, masks and hexadecimal.**
+
+- [Bitwise operation (Wikipedia)](https://en.wikipedia.org/wiki/Bitwise_operation)
+- [Mask (computing) (Wikipedia)](https://en.wikipedia.org/wiki/Mask_(computing))
+- [Hexadecimal (Wikipedia)](https://en.wikipedia.org/wiki/Hexadecimal)
+- [Bitwise operations on integer types (Python docs)](https://docs.python.org/3/library/stdtypes.html#bitwise-operations-on-integer-types)
+- [Python BitManipulation (Python wiki)](https://wiki.python.org/moin/BitManipulation)
+
+**Python.**
+
+- [`random` module (seeds and reproducibility)](https://docs.python.org/3/library/random.html)
+- [`typing` module (type hints)](https://docs.python.org/3/library/typing.html)
+- [Errors and exceptions](https://docs.python.org/3/tutorial/errors.html)
+- [Reading and writing files](https://docs.python.org/3/tutorial/inputoutput.html#reading-and-writing-files)
+- [Modules and packages](https://docs.python.org/3/tutorial/modules.html)
+- [`sys.argv` (command-line arguments)](https://docs.python.org/3/library/sys.html#sys.argv)
+- [ANSI escape codes (Wikipedia)](https://en.wikipedia.org/wiki/ANSI_escape_code): used for the colours in the terminal
+
+**Tools and standards.**
+
 - [PEP 8 - Style Guide for Python Code](https://peps.python.org/pep-0008/)
 - [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
 - [PEP 484 - Type Hints](https://peps.python.org/pep-0484/)
 - [mypy documentation](https://mypy.readthedocs.io/)
 - [flake8 documentation](https://flake8.pycqa.org/)
+- [`pdb`, the Python debugger](https://docs.python.org/3/library/pdb.html)
+- [GNU Make manual](https://www.gnu.org/software/make/manual/make.html)
 - [Python Packaging User Guide](https://packaging.python.org/)
 
-**Use of AI.** We used Claude as a learning and review assistant, not to
-write the project for us. It was used for:
-
-- explaining concepts (graphs and spanning trees, depth-first and breadth-first
-  search, bitwise operations, the Python import system and packages);
-- guiding the design step by step, proposing plans and skeletons that we then
-  wrote ourselves;
-- reviewing our code and pointing out bugs and style problems (wrong indices,
-  missing bounds checks, `flake8` and `mypy` warnings);
-- helping with the Makefile, the configuration validation and the structure of
-  this README;
-- building small test scenarios to understand the 3x3 rule of the braiding.
-
-Some snippets suggested by the assistant were adapted into the code. Every
-part was tested, reviewed by both of us, and we can explain it.
+**Use of AI.** We used Claude as a tutor and code reviewer. It helped us
+understand the concepts behind the project (graphs, depth-first and
+breadth-first search, bitwise operations), plan each step, review our code and
+spot bugs and style problems, and draft the Makefile and this README. We wrote
+the code ourselves, adapted the few snippets it suggested, tested everything,
+and we can explain every part of it.
