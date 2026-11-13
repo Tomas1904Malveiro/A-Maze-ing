@@ -2,6 +2,18 @@ from mazegen.generator import MazeGenerator
 
 
 def write_output(maze: MazeGenerator, filename: str) -> None:
+    """Write the maze to a file in the format required by the subject.
+
+    The file has one line per row of the maze, with one hexadecimal digit
+    per cell (a bit set to 1 means a closed wall: bit 0 North, bit 1 East,
+    bit 2 South, bit 3 West), followed by an empty line, the entry
+    coordinates, the exit coordinates and the shortest path. If the file
+    cannot be written, an error message is printed.
+
+    Args:
+        maze: a maze that was already generated.
+        filename: path of the output file.
+    """
     path = maze.solve()
 
     try:
