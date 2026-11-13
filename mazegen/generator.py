@@ -19,10 +19,43 @@ CELLS_42 = [
 
 
 class MazeGenerator:
+    """Generate and solve a rectangular maze.
+
+    The maze is stored in ``grid``: a list of rows (``grid[y][x]``) where
+    each cell is an integer from 0 to 15 whose bits are the closed walls
+    (bit 0 = North, 1 = East, 2 = South, 3 = West). Every cell starts with
+    all four walls closed, and generating the maze opens walls.
+
+    Attributes:
+        width: number of columns.
+        height: number of rows.
+        grid: wall encoding of every cell, indexed as ``grid[y][x]``.
+        entry: ``(x, y)`` coordinates of the entry.
+        exit_: ``(x, y)`` coordinates of the exit.
+        perfect: True for a perfect maze (no loops), False for a braided
+            maze (loops, no dead ends outside the "42" pattern).
+        rng: seeded random generator, so the same seed gives the same maze.
+        cells_42: ``(x, y)`` cells of the closed "42" pattern (empty until
+            ``generate`` is called, or if the maze is too small).
+    """
     def __init__(
                 self, width: int, height: int,
                 entry: tuple[int, int], exit_: tuple[int, int],
                 perfect: bool = True, seed: int | None = None) -> None:
+        """Create a maze with all walls closed.
+
+        The arguments are not validated by this class.
+
+        Args:
+            width: number of columns of the maze.
+            height: number of rows of the maze.
+            entry: ``(x, y)`` coordinates of the entry.
+            exit_: ``(x, y)`` coordinates of the exit.
+            perfect: if True the maze has a single path between any two
+                cells; if False loops are added (braiding).
+            seed: seed of the random generator, or None for a different
+                maze at every run.
+        """
         self.width = width
         self.height = height
         self.grid = [[15] * width for _ in range(height)]
@@ -33,6 +66,16 @@ class MazeGenerator:
         self.cells_42: list[tuple[int, int]] = []
 
     def open_wall(self, x: int, y: int, direction: int) -> None:
+        """Open the wall between a cell and its neighbour.
+
+        Both cells are updated so that the shared wall stays coherent.
+        The neighbour must be inside the maze.
+
+        Args:
+            x: column of the cell.
+            y: row of the cell.
+            direction: side of the cell to open (N, E, S or W).
+        """
         opposite = [S, W, N, E]
 
         nx = x + DX[direction]
@@ -42,6 +85,15 @@ class MazeGenerator:
         self.grid[ny][nx] &= ~(1 << opposite[direction])
 
     def get_cells_42(self) -> list[tuple[int, int]]:
+        """Return the cells that draw the "42" pattern.
+
+        The pattern is centred in the maze. If the maze is smaller than
+        10x7 cells an error message is printed and no cells are returned.
+
+        Returns:
+            List of ``(x, y)`` coordinates of the closed cells, or an empty
+            list if the pattern does not fit.
+        """
         if self.height < 7 or self.width < 10:
             print("Error: maze too small for the '42' pattern (min 10x7)")
             return []
@@ -55,6 +107,17 @@ class MazeGenerator:
         return cells
 
     def generate(self) -> None:
+        """Generate the maze, opening walls in ``grid``.
+
+        Uses a depth-first search (recursive backtracker) with a stack,
+        starting at the entry. The cells of the "42" pattern are marked as
+        visited beforehand, so they stay fully closed (if the entry or the
+        exit is inside the pattern, the pattern is omitted and an error
+        message is printed). If ``perfect`` is False, ``braid`` is called
+        afterwards to remove the dead ends.
+
+        Call it once per object: the grid is not reset between calls.
+        """
         visited = [[False] * self.width for _ in range(self.height)]
 
         x = self.entry[0]
@@ -108,6 +171,15 @@ class MazeGenerator:
             self.braid()
 
     def solve(self) -> str:
+        """Find the shortest path from the entry to the exit.
+
+        Uses a breadth-first search over the open walls. It only reads the
+        grid, so the maze is not modified.
+
+        Returns:
+            The path as a string of ``N``, ``E``, ``S`` and ``W`` letters,
+            or an empty string if the exit cannot be reached.
+        """
         visited = [[False] * self.width for _ in range(self.height)]
         queue = [self.entry]
         came_from = {}
