@@ -362,6 +362,7 @@ generator is in `LICENSE.md`.
 │   └── generator.py     MazeGenerator (reusable module)
 ├── Makefile
 ├── pyproject.toml
+├── LICENSE.md
 └── README.md
 ```
 
