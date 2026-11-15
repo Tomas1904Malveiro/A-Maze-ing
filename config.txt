@@ -14,4 +14,4 @@ EXIT=19,14
 OUTPUT_FILE=maze.txt
 
 # Is the maze perfect?
-PERFECT=True
+PERFECT=False
