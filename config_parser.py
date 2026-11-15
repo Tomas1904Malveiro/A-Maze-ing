@@ -1,5 +1,5 @@
 from typing import Any
-from mazegen.generator import CELLS_42
+from mazegen.generator import MazeGenerator
 
 def parse_config(filename: str) -> dict[str, Any]:
     """Read and validate a maze configuration file.
@@ -91,7 +91,9 @@ def parse_config(filename: str) -> dict[str, Any]:
     if config["ENTRY"] == config["EXIT"]:
         raise ValueError("ENTRY and EXIT must be different")
 
-    if config["ENTRY"] in CELLS_42  or config["EXIT"] in CELLS_42:
-        raise ValueError("Error: The entry or exit are inside of 42 cells")
+    cells = MazeGenerator.get_cells_42(config["WIDTH"], config["HEIGHT"])
+    for name in ("ENTRY", "EXIT"):
+        if config[name] in cells:
+            raise ValueError(f"{name} is inside the '42' pattern")
 
     return config

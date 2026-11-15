@@ -84,22 +84,26 @@ class MazeGenerator:
         self.grid[y][x] &= ~(1 << direction)
         self.grid[ny][nx] &= ~(1 << opposite[direction])
 
-    def get_cells_42(self) -> list[tuple[int, int]]:
+    @staticmethod
+    def get_cells_42(width: int, height: int) -> list[tuple[int, int]]:
         """Return the cells that draw the "42" pattern.
 
-        The pattern is centred in the maze. If the maze is smaller than
-        10x7 cells an error message is printed and no cells are returned.
+        The pattern is centred in the maze. It does not fit in a maze
+        smaller than 10x7 cells.
+
+        Args:
+            width: number of columns of the maze.
+            height: number of rows of the maze.
 
         Returns:
             List of ``(x, y)`` coordinates of the closed cells, or an empty
             list if the pattern does not fit.
         """
-        if self.height < 7 or self.width < 10:
-            print("Error: maze too small for the '42' pattern (min 10x7)")
+        if height < 7 or width < 10:
             return []
 
-        start_y = (self.height - 7) // 2
-        start_x = (self.width - 7) // 2
+        start_y = (height - 7) // 2
+        start_x = (width - 7) // 2
 
         cells = []
         for cell in CELLS_42:
@@ -125,7 +129,11 @@ class MazeGenerator:
         visited[y][x] = True
         stack = [(x, y)]
 
-        cells42 = self.get_cells_42()
+        cells42 = self.get_cells_42(self.width, self.height)
+        if not cells42:
+            print("Error: maze too small for the '42' pattern (min 10x7)")
+        if self.entry in cells42 or self.exit_ in cells42:
+            raise ValueError("entry or exit inside the '42' pattern")
 
         self.cells_42 = cells42
         for cell in cells42:
