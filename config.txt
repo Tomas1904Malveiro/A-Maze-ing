@@ -8,10 +8,10 @@ HEIGHT=15
 ENTRY=0,0
 
 # Exit coordinates (x,y)
-EXIT=19,14
+EXIT=6,5
 
 # Output filename
 OUTPUT_FILE=maze.txt
 
 # Is the maze perfect?
-PERFECT=False
+PERFECT=True

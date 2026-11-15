@@ -126,9 +126,6 @@ class MazeGenerator:
         stack = [(x, y)]
 
         cells42 = self.get_cells_42()
-        if self.entry in cells42 or self.exit_ in cells42:
-            print("Error: The entry or exit are inside of 42 cells")
-            cells42 = []
 
         self.cells_42 = cells42
         for cell in cells42:
