@@ -99,7 +99,7 @@ class MazeGenerator:
             return []
 
         start_y = (self.height - 7) // 2
-        start_x = (self.width - 8) // 2
+        start_x = (self.width - 7) // 2
 
         cells = []
         for cell in CELLS_42:
